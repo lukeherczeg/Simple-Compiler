@@ -6,26 +6,29 @@
 #include "pa3.h"
 
 
-void Reader::read(std::ifstream file){
+void Reader::parse(std::ifstream& file){
 	std::string word;
 	while(file >> word){
 		this->wordFrequency[word]++;
 	}
+	file.close();
+}
+
+void Reader::print(){
 	std::cout << std::endl;
 	for(this->it = this->wordFrequency.begin(); this->it != this->wordFrequency.end(); (this->it)++){
 		std::cout << this->it->first << " frequency: " << this->it->second << std::endl;
 	}
-	file.close();
 }
-
 
 int main(){
 	Reader * r = new Reader();
 	std::string fileLocation;
-	std::ifstream file(fileLocation.c_str());
 	std::cin >> fileLocation;
+	std::ifstream file(fileLocation.c_str());
 
-	r->read(file);
+	r->parse(file);
+	r->print();
 
 	return 0;
 }
