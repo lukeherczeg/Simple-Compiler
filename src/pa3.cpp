@@ -14,6 +14,18 @@ void Reader::parse(std::ifstream& file){
 	file.close();
 }
 
+void Reader::getKeyWords(){
+	std::cout << "Keywords : ";
+	for(this->it = this->wordFrequency.begin(); this->it != this->wordFrequency.end(); (this->it)++){
+		for(unsigned int i = 0; i < this->keywords->length(); i++){
+			if(this->it->first == this->keywords[i]){
+				std::cout << this->it->first << " ";
+			}
+		}
+	}
+}
+
+
 void Reader::print(){
 	std::cout << std::endl;
 	for(this->it = this->wordFrequency.begin(); this->it != this->wordFrequency.end(); (this->it)++){
@@ -28,6 +40,7 @@ int main(){
 	std::ifstream file(fileLocation.c_str());
 
 	r->parse(file);
+	r->getKeyWords();
 	r->print();
 
 	return 0;
