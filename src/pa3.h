@@ -3,12 +3,15 @@
 
 class Reader{
 private:
-	std::string * keywords = new std::string[3] {"BEGIN","END","FOR"};
-	std::string * operators = new std::string[6] {"++","+","-","*","/","="};
+	std::vector<std::string> keyWords = {"FOR", "BEGIN", "END"};
+	std::vector<std::string> operators = {"++", "-", "*", "/", "=", "+"};
+	std::vector<std::string> delimiters = {";", ","};
 	std::map<std::string, int> wordFrequency;
 public:
 	std::map<std::string, int>::iterator it;
-	void parse(std::ifstream& file);
+	void fillMap(std::ifstream& file);
+	void getDelimiters();
+	void getOperators();
 	void getKeyWords();
 	void print();
 };

@@ -1,30 +1,70 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <algorithm>
 #include <iterator>
 #include <map>
 #include "pa3.h"
 
 
-void Reader::parse(std::ifstream& file){
+bool alreadyContains(const std::string &value, const std::vector<std::string> &array)
+{
+    return std::find(array.begin(), array.end(), value) != array.end();
+}
+
+
+void Reader::getOperators(){
+	std::cout << "Operators : ";
+	std::vector<std::string> tempOperators;
+	for(this->it = this->wordFrequency.begin(); this->it != this->wordFrequency.end(); (this->it)++){
+		for(unsigned int i = 0; i < 6; i++){
+			if((this->it->first).find(this->operators[i]) != std::string::npos && !(alreadyContains(this->operators[i], tempOperators))){
+				tempOperators.push_back(this->operators[i]);
+				std::cout << this->operators[i] << " ";
+				break;
+			}
+		}
+	}
+	std::cout << std::endl;
+}
+
+void Reader::getDelimiters(){
+	std::cout << "Delimiters : ";
+	std::vector<std::string> tempDelimiters;
+	for(this->it = this->wordFrequency.begin(); this->it != this->wordFrequency.end(); (this->it)++){
+		for(unsigned int i = 0; i < 2; i++){
+			if((this->it->first).find(this->delimiters[i]) != std::string::npos && !(alreadyContains(this->delimiters[i], tempDelimiters))){
+				tempDelimiters.push_back(this->delimiters[i]);
+				std::cout << this->delimiters[i] << " ";
+				break;
+			}
+		}
+	}
+	std::cout << std::endl;
+}
+
+void Reader::getKeyWords(){
+	std::cout << "Keywords : ";
+	std::vector<std::string> tempKeywords;
+	for(this->it = this->wordFrequency.begin(); this->it != this->wordFrequency.end(); (this->it)++){
+		for(unsigned int i = 0; i < 3; i++){
+			if((this->it->first).find(this->keyWords[i]) != std::string::npos && !(alreadyContains(this->keyWords[i], tempKeywords))){
+				tempKeywords.push_back(this->keyWords[i]);
+				std::cout << this->keyWords[i] << " ";
+				break;
+			}
+		}
+	}
+	std::cout << std::endl;
+}
+
+void Reader::fillMap(std::ifstream& file){
 	std::string word;
 	while(file >> word){
 		this->wordFrequency[word]++;
 	}
 	file.close();
 }
-
-void Reader::getKeyWords(){
-	std::cout << "Keywords : ";
-	for(this->it = this->wordFrequency.begin(); this->it != this->wordFrequency.end(); (this->it)++){
-		for(unsigned int i = 0; i < this->keywords->length(); i++){
-			if(this->it->first == this->keywords[i]){
-				std::cout << this->it->first << " ";
-			}
-		}
-	}
-}
-
 
 void Reader::print(){
 	std::cout << std::endl;
@@ -36,11 +76,14 @@ void Reader::print(){
 int main(){
 	Reader * r = new Reader();
 	std::string fileLocation;
-	std::cin >> fileLocation;
+	//std::cin >> fileLocation;
+	fileLocation = "code.txt";
 	std::ifstream file(fileLocation.c_str());
 
-	r->parse(file);
+	r->fillMap(file);
+	r->getOperators();
 	r->getKeyWords();
+	r->getDelimiters();
 	r->print();
 
 	return 0;

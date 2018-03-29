@@ -2,6 +2,7 @@ FOR (i, 10, ++)
 BEGIN
 	FOR (j, 10, ++)
 	BEGAN
-		sum=sum +  i + j;
-	END
+		sum = sum + i + j;
+		bob = i + 11;
+	END+++
 END
