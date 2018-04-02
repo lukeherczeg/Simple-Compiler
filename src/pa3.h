@@ -1,16 +1,31 @@
 #ifndef PA3_H_
 #define PA3_H_
 
-class Reader{
+class Stack{
 private:
-	std::vector<std::string> keyWords = {"FOR", "BEGIN", "END"};
-	std::vector<std::string> operators = {"++", "-", "*", "/", "=", "+"};
-	std::vector<std::string> delimiters = {";", ","};
+	std::vector<std::string> stackList;
+public:
+	std::string peek();
+	void push(std::string item);
+	void pop();
+	bool isEmpty();
+};
+
+
+class Compiler{
+private:
+	std::vector<std::string> keyWords = {"FOR", "BEGIN", "END"}; const int numKeyWords = 3;
+	std::vector<std::string> operators = {"++", "-", "*", "/", "=", "+"}; const int numOperators = 6;
+	std::vector<std::string> delimiters = {";", ","}; const int numDelimiters = 2;
 	std::map<std::string, int> wordFrequency;
 public:
 	std::map<std::string, int>::iterator it;
+	std::string::iterator charIt;
 	void fillMap(std::ifstream& file);
+	void getSyntaxErrors();
 	void getDelimiters();
+	void getConstants();
+	void getIdentifiers();
 	void getOperators();
 	void getKeyWords();
 	void print();
