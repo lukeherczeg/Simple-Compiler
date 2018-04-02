@@ -7,7 +7,6 @@
 #include <map>
 #include "pa3.h"
 
-
 template <class T> bool alreadyContains(const T &value, const std::vector<T> &array)
 {
     return std::find(array.begin(), array.end(), value) != array.end();
@@ -141,12 +140,22 @@ void Compiler::fillMap(std::ifstream& file){
 void Compiler::print(){
 	std::cout << std::endl;
 	for(this->it = this->wordFrequency.begin(); this->it != this->wordFrequency.end(); (this->it)++){
-		std::cout << this->it->first << " frequency: " << this->it->second << std::endl;
+		std::cout << this->it->first << std::endl;
 	}
 }
 
-//Compiler::Compiler
+void Compiler::parse(){
+	std::string fileLocation;
+	fileLocation = "code.txt";
+	std::ifstream file(fileLocation.c_str());
 
+	this->fillMap(file);
+	this->getKeyWords();
+	this->getIdentifiers();
+	this->getConstants();
+	this->getOperators();
+	this->getDelimiters();
+}
 
 //encounter for, push
 //encounter left parenth. if the top of the stack is for, push it to the stack
@@ -154,19 +163,11 @@ void Compiler::print(){
 
 
 int main(){
-	Compiler * r = new Compiler();
-	std::string fileLocation;
-	//std::cin >> fileLocation;
-	fileLocation = "code.txt";
-	std::ifstream file(fileLocation.c_str());
 
-	r->fillMap(file);
-	r->getKeyWords();
-	r->getIdentifiers();
-	r->getConstants();
-	r->getOperators();
-	r->getDelimiters();
-	r->print();
+	Compiler * compiler = new Compiler();
+
+	compiler->parse();
+	compiler->print();
 
 	return 0;
 }

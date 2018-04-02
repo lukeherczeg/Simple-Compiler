@@ -14,13 +14,11 @@ public:
 
 class Compiler{
 private:
+	std::map<std::string, int>::iterator it;
 	std::vector<std::string> keyWords = {"FOR", "BEGIN", "END"}; const int numKeyWords = 3;
 	std::vector<std::string> operators = {"++", "-", "*", "/", "=", "+"}; const int numOperators = 6;
 	std::vector<std::string> delimiters = {";", ","}; const int numDelimiters = 2;
 	std::map<std::string, int> wordFrequency;
-public:
-	std::map<std::string, int>::iterator it;
-	std::string::iterator charIt;
 	void fillMap(std::ifstream& file);
 	void getSyntaxErrors();
 	void getDelimiters();
@@ -28,6 +26,8 @@ public:
 	void getIdentifiers();
 	void getOperators();
 	void getKeyWords();
+public:
+	void parse();
 	void print();
 };
 
