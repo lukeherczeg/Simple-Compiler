@@ -36,15 +36,28 @@ bool Stack::isEmpty(){
 	return stackList.empty();
 }
 
+int Compiler::findLoopDepth(){
+	int count = 0;
+	std::string word = this->it->first;
+	for(this->it = this->wordFrequency.begin(); this->it != this->wordFrequency.end(); (this->it)++){
+		std::string word = this->it->first;
+		for(char i : word){
+			break;
+		}
+	}
+	return count;
+}
+
+
 void Compiler::getConstants(){
 	std::cout << "Constants:";
 	std::string constant = "";
 	std::vector<std::string> tempConstants;
 	for(this->it = this->wordFrequency.begin(); this->it != this->wordFrequency.end(); (this->it)++){
 		std::string word = this->it->first;
-		for(unsigned int i = 0; i < word.length(); i++){
-			if(isdigit(word[i])){
-				constant += word[i];
+		for(char i : word){
+			if(isdigit(i)){
+				constant += i;
 			}
 		}
 		if(!(alreadyContains(constant, tempConstants))){
@@ -62,13 +75,11 @@ void Compiler::getIdentifiers(){
 	std::string tempVariable;
 	for(this->it = this->wordFrequency.begin(); this->it != this->wordFrequency.end(); (this->it)++){
 		std::string word = this->it->first;
-		for(unsigned int i = 0; i < word.length(); i++){
-			if(isLowerCaseCharacter(word[i])){
-				tempVariable += word[i];
+		for(char i : word){
+			if(isLowerCaseCharacter(i)){
+				tempVariable += i;
 			}
-			else{
-				break;
-			}
+			else break;
 		}
 		if(!(alreadyContains(tempVariable, tempVariables))){
 			tempVariables.push_back(tempVariable);
@@ -88,10 +99,10 @@ void Compiler::getKeyWords(){
 	std::cout << "Keywords: ";
 	std::vector<std::string> tempKeywords;
 	for(this->it = this->wordFrequency.begin(); this->it != this->wordFrequency.end(); (this->it)++){
-		for(int i = 0; i < numKeyWords; i++){
-			if((this->it->first).find(this->keyWords[i]) != std::string::npos && !(alreadyContains(this->keyWords[i], tempKeywords))){
-				tempKeywords.push_back(this->keyWords[i]);
-				std::cout << this->keyWords[i] << " ";
+		for(std::string keyWord : this->keyWords){
+			if((this->it->first).find(keyWord) != std::string::npos && !(alreadyContains(keyWord, tempKeywords))){
+				tempKeywords.push_back(keyWord);
+				std::cout << keyWord << " ";
 				break;
 			}
 		}
@@ -103,10 +114,10 @@ void Compiler::getOperators(){
 	std::cout << "Operators: ";
 	std::vector<std::string> tempOperators;
 	for(this->it = this->wordFrequency.begin(); this->it != this->wordFrequency.end(); (this->it)++){
-		for(int i = 0; i < numOperators; i++){
-			if((this->it->first).find(this->operators[i]) != std::string::npos && !(alreadyContains(this->operators[i], tempOperators))){
-				tempOperators.push_back(this->operators[i]);
-				std::cout << this->operators[i] << " ";
+		for(std::string op : this->operators){
+			if((this->it->first).find(op) != std::string::npos && !(alreadyContains(op, tempOperators))){
+				tempOperators.push_back(op);
+				std::cout << op << " ";
 				break;
 			}
 		}
@@ -118,10 +129,10 @@ void Compiler::getDelimiters(){
 	std::cout << "Delimiters: ";
 	std::vector<std::string> tempDelimiters;
 	for(this->it = this->wordFrequency.begin(); this->it != this->wordFrequency.end(); (this->it)++){
-		for(int i = 0; i < numDelimiters; i++){
-			if((this->it->first).find(this->delimiters[i]) != std::string::npos && !(alreadyContains(this->delimiters[i], tempDelimiters))){
-				tempDelimiters.push_back(this->delimiters[i]);
-				std::cout << this->delimiters[i] << " ";
+		for(std::string delimiter : this->delimiters){
+			if(((this->it->first).find(delimiter) != std::string::npos) && !(alreadyContains(delimiter, tempDelimiters))){
+				tempDelimiters.push_back(delimiter);
+				std::cout << delimiter << " ";
 				break;
 			}
 		}

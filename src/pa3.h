@@ -14,11 +14,13 @@ public:
 
 class Compiler{
 private:
+	Stack stack;
 	std::map<std::string, int>::iterator it;
-	std::vector<std::string> keyWords = {"FOR", "BEGIN", "END"}; const int numKeyWords = 3;
+	std::vector<std::string> keyWords = {"FOR", "BEGIN", "END"};
 	std::vector<std::string> operators = {"++", "-", "*", "/", "=", "+"}; const int numOperators = 6;
 	std::vector<std::string> delimiters = {";", ","}; const int numDelimiters = 2;
 	std::map<std::string, int> wordFrequency;
+	int findLoopDepth();
 	void fillMap(std::ifstream& file);
 	void getSyntaxErrors();
 	void getDelimiters();
