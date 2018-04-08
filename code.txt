@@ -1,7 +1,9 @@
-FOR (i, 10, ++)
+FOR 
 BEGIN
-	FOR (j, 10, ++)
-	BEGIN
-		sum=sum + i + j;
+	FOR 
+	BEGIN 
 	END
+	FOR 
+	BEGIN
+	END 
 END

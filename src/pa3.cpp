@@ -7,17 +7,23 @@
 #include <map>
 #include "pa3.h"
 
-template <class T> bool alreadyContains(const T &value, const std::vector<T> &array)
-{
-    return std::find(array.begin(), array.end(), value) != array.end();
-}
-
 bool isUpperCaseCharacter(char character){
 	return (character <= 'Z' && character >= 'A') ? true : false;
 }
 
 bool isLowerCaseCharacter(char character){
 	return (character <= 'z' && character >= 'a') ? true : false;
+}
+
+void giveError(std::vector<std::string> & syntaxErrors, std::string possibleError, std::string c){
+	possibleError = c; 					   // Make the possibleError the one given as c
+	syntaxErrors.push_back(possibleError); // Add the error to the syntaxErrors vector
+	std::cout << possibleError << " ";	   // Print the error.
+}
+
+template <class T> bool alreadyContains(const T &value, const std::vector<T> &array)
+{
+    return std::find(array.begin(), array.end(), value) != array.end();
 }
 
 template <class T> void Stack<T>::push(T item){
@@ -44,56 +50,263 @@ template <class T> bool Stack<T>::isEmpty(){
 	return stackList.empty();
 }
 
-char isMatching(char paren){
-	return (paren == '(') ? ')' : 'n';
-}
+void Compiler::getSyntaxErrors(){
+	std::cout << "Syntax error(s): ";
+	std::vector<std::string> syntaxErrors;
+	std::string possibleError = "";
+	int last = 0;
+	int forCount = 0;
+	int beginCount = 0;
+	int endCount = 0;
+	bool endMissing = true;
+	bool beginMissing = true;
+	bool hasUpperCase = false;
 
-void giveError(std::vector<std::string> & syntaxErrors, std::string possibleError, std::string c){
-	possibleError = c;
-	syntaxErrors.push_back(possibleError);
-	std::cout << possibleError << " ";
-}
+	for(std::string word : this->words){
+		if(!alreadyContains(word, this->keyWords)){
+			for(char i : word){						// Loop to check if the word is any bit upperCase and not already a keyword.
+				if(isUpperCaseCharacter(i)){		// If it meets both criteria, continue to build the word until the full error is found.
+					possibleError += i;
+					hasUpperCase = true;
+				}
+				if(isLowerCaseCharacter(i)){
+					possibleError += i;
+				}
+			}
 
-/*
-int main(){
+			if(!alreadyContains(possibleError, syntaxErrors) && hasUpperCase){
+				if((possibleError[0] == 'B' || possibleError[0] == 'b') ||
+				   (possibleError[word.size()-1] == 'N' || possibleError[word.size()-1] == 'n')){  // Checks the first and last letters of the error
+					beginMissing = false;	// So, BEGIN is not missing, it is misspelled.		   // to determine if BEGIN is misspelled.
+				}
+				if((possibleError[0] == 'E' || possibleError[0] == 'e') ||
+				   (possibleError[word.size()-1] == 'D' || possibleError[word.size()-1] == 'd')){  // Checks the first and last letters of the error
+					endMissing = false;		// So, END is not missing, it is misspelled.		   // to determine if END is misspelled.
+				}
 
-	std::string exp;
-	std::cin >> exp;
-    Stack * parenStack = new Stack();
-
-    for(unsigned int i = 0; i < exp.size(); i++){
-    	if(exp[i] == '(' || exp[i] == '[' || exp[i] == '{'){
-    		parenStack->push(exp[i]);
-    	}
-    	else{
-    		if(parenStack->isEmpty() || isMatching(parenStack->peek()) != exp[i]){
-    			std::cout << "Not valid expression" << std::endl;
-    			return 0;
-    		}
-    		parenStack->pop();
-    	}
-    }
-    if(!parenStack->isEmpty()){
-    	std::cout << "Not valid expression" << std::endl;
-    }
-    else{
-    	std::cout << "Valid expression" << std::endl;
-    }
-
-	return 0;
-}
-*/
-
-int Compiler::findLoopDepth(){
-	int count = 0;
-	std::string word = this->it->first;
-	for(this->it = this->wordFrequency.begin(); this->it != this->wordFrequency.end(); (this->it)++){
-		std::string word = this->it->first;
-		//for(char i : word){
-		//	break;
-		//}
+				giveError(syntaxErrors, possibleError, possibleError);  // Give the error found.
+			}
+			possibleError = ""; // Reset the value of possibleError.
+			hasUpperCase = false; // Reset the value of hasUpperCase.
+		}
+		if(word == "FOR" && !this->stackChar.isEmpty()){
+			giveError(syntaxErrors, possibleError, "(");
+			this->stackString.push(word);
+			this->stackChar.clear();
+			forCount++;
+		}
+		else if(word == "FOR"){
+			this->stackString.push(word);
+			this->stackChar.clear();
+			forCount++;
+		}
+		else if(word == "END"){
+			endCount++;
+		}
+		else if(word == "BEGIN"){
+			beginCount++;
+		}
+		else if (word[word.size() - 1] == ')' || word[0] == '('){
+			int pos = -1;
+			for(char i : word){
+				++pos;
+				switch(i){
+				case '(':
+					this->stackChar.push(i);
+					break;
+				case ')':
+					if(!this->stackChar.isEmpty()){
+						this->stackChar.pop();
+						if(pos == last)
+							this->stackString.pop();
+					}
+					else{
+						giveError(syntaxErrors, possibleError, ")");
+						this->stackString.pop();
+						break;
+					}
+					break;
+				}
+			}
+		}
 	}
-	return count;
+
+	if(!stackChar.isEmpty())
+		giveError(syntaxErrors, possibleError, "(");
+
+	if(((forCount > beginCount) || (beginCount > forCount)) && beginMissing)
+		giveError(syntaxErrors, possibleError, "BEGIN");
+
+	if(((forCount > endCount) || (endCount > forCount)) && endMissing)
+		giveError(syntaxErrors, possibleError, "END");
+
+	if(syntaxErrors.empty())
+		std::cout << "NA";
+
+	std::cout << std::endl;
+}
+
+bool Compiler::loopHasError(){
+	std::vector<std::string> syntaxErrors;
+	std::string possibleError = "";
+	int last = 0;
+	int forCount = 0;
+	int beginCount = 0;
+	int endCount = 0;
+	bool endMissing = true;
+	bool beginMissing = true;
+	bool hasUpperCase = false;
+
+	for(std::string word : this->words){
+		if(!alreadyContains(word, this->keyWords)){
+			for(char i : word){						// Loop to check if the word is any bit upperCase and not already a keyword.
+				if(isUpperCaseCharacter(i)){		// If it meets both criteria, continue to build the word until the full error is found.
+					possibleError += i;
+					hasUpperCase = true;
+				}
+				if(isLowerCaseCharacter(i)){
+					possibleError += i;
+				}
+			}
+
+			if(!alreadyContains(possibleError, syntaxErrors) && hasUpperCase){
+				if((possibleError[0] == 'B' || possibleError[0] == 'b') ||
+				   (possibleError[word.size()-1] == 'N' || possibleError[word.size()-1] == 'n')){  // Checks the first and last letters of the error
+					beginMissing = false;	// So, BEGIN is not missing, it is misspelled.		   // to determine if BEGIN is misspelled.
+				}
+				if((possibleError[0] == 'E' || possibleError[0] == 'e') ||
+				   (possibleError[word.size()-1] == 'D' || possibleError[word.size()-1] == 'd')){  // Checks the first and last letters of the error
+					endMissing = false;		// So, END is not missing, it is misspelled.		   // to determine if END is misspelled.
+				}
+
+				giveError(syntaxErrors, possibleError, possibleError);  // Give the error found.
+			}
+			possibleError = ""; // Reset the value of possibleError.
+			hasUpperCase = false; // Reset the value of hasUpperCase.
+		}
+		if(word == "FOR" && !this->stackChar.isEmpty()){
+			giveError(syntaxErrors, possibleError, "(");
+			this->stackString.push(word);
+			this->stackChar.clear();
+			forCount++;
+		}
+		else if(word == "FOR"){
+			this->stackString.push(word);
+			this->stackChar.clear();
+			forCount++;
+		}
+		else if(word == "END"){
+			endCount++;
+		}
+		else if(word == "BEGIN"){
+			beginCount++;
+		}
+		else if (word[word.size() - 1] == ')' || word[0] == '('){
+			int pos = -1;
+			for(char i : word){
+				++pos;
+				switch(i){
+				case '(':
+					this->stackChar.push(i);
+					break;
+				case ')':
+					if(!this->stackChar.isEmpty()){
+						this->stackChar.pop();
+						if(pos == last)
+							this->stackString.pop();
+					}
+					else{
+						giveError(syntaxErrors, possibleError, ")");
+						this->stackString.pop();
+						break;
+					}
+					break;
+				}
+			}
+		}
+	}
+
+	if(!stackChar.isEmpty())
+		giveError(syntaxErrors, possibleError, "(");
+
+	if(((forCount > beginCount) || (beginCount > forCount)) && beginMissing)
+		giveError(syntaxErrors, possibleError, "BEGIN");
+
+	if(((forCount > endCount) || (endCount > forCount)) && endMissing)
+		giveError(syntaxErrors, possibleError, "END");
+
+	if(syntaxErrors.empty())
+		std::cout << "NA";
+
+	std::cout << std::endl;
+	return true;
+}
+
+int Compiler::getLoopDepth(){
+	int count = 0;
+	int loopsReached = 1;
+	int beginCount = 0;
+	int forCount = 0;
+	bool isFirstLoop = true;
+	bool onlyOneLoop = true;
+	std::vector<Stack<std::string>> loops;
+	for(std::string word : this->words){
+		if(word == "FOR" && isFirstLoop){
+			forCount++;
+			loops.push_back(Stack<std::string>());
+			loops[count].push(word);
+			isFirstLoop = false;
+		}
+		else if(word == "FOR"){
+			onlyOneLoop = false;
+			forCount++;
+			count++;
+			if(loops[count-1].peek() == "BEGIN" || loops[count-1].peek() == "FOR"){
+				loops.push_back(Stack<std::string>());
+				loops[count].push(word);
+				loopsReached++;
+			}
+			else if(loops[count-1].peek() == "END"){
+				count--;
+				loops[count].push(word);
+			}
+		}
+		if(word == "BEGIN" && loops[count].peek() == "FOR"){
+			beginCount++;
+			loops[count].push(word);
+		}
+		if(word == "END"){
+			forCount--;
+			beginCount--;
+			count--;
+			if(loops[count+1].peek() == "BEGIN"){
+				count++;
+				loops[count].push(word);
+			}
+			else if(loops[count+1].peek()  == "END"){
+				loops[count].push(word);
+			}
+		}
+	}
+
+	//if(forCount != 0)
+	//	loopsReached -= forCount;
+	/*if(beginCount != forCount)
+		loopsReached -= (forCount - beginCount);
+	else{
+		for(int i = count+1; i > 0; --i){
+			if(loops[i].peek() != "END"){
+				loopsReached--;
+			}
+		}
+	}*/
+
+	if(onlyOneLoop)
+		if(loops[count].peek() != "END")
+			loopsReached--;
+
+
+	return loopsReached;
 }
 
 void Compiler::getConstants(){
@@ -117,7 +330,7 @@ void Compiler::getConstants(){
 }
 
 void Compiler::getIdentifiers(){
-	std::cout << "Identifiers:";
+	std::cout << "Identifiers: ";
 	std::vector<std::string> tempVariables;
 	std::string tempVariable;
 	for(this->it = this->wordFrequency.begin(); this->it != this->wordFrequency.end(); (this->it)++){
@@ -126,113 +339,16 @@ void Compiler::getIdentifiers(){
 			if(isLowerCaseCharacter(i)){
 				tempVariable += i;
 			}
-			else break;
+			else if(tempVariable.size() >= 1){
+				break;
+			}
 		}
-		if(!(alreadyContains(tempVariable, tempVariables))){
+		if(!(alreadyContains(tempVariable, tempVariables)) && tempVariable.size() >= 1){
 			tempVariables.push_back(tempVariable);
 			std::cout << tempVariable << " ";
 		}
 		tempVariable = "";
 	}
-	std::cout << std::endl;
-}
-
-void Compiler::getSyntaxErrors(){
-	std::cout << "Syntax error(s): ";
-	std::vector<std::string> syntaxErrors;
-	std::string possibleError = "";
-	int last = 0;
-	bool hasUpperCase = false;
-
-	for(std::string word : this->words){
-		if(word == "BEGIN" && !this->stackChar.isEmpty()){
-			giveError(syntaxErrors, possibleError, "(");
-			this->stackString.push(word);
-			this->stackChar.clear();
-		}
-		else if(word == "FOR" && !this->stackChar.isEmpty()){
-			giveError(syntaxErrors, possibleError, "(");
-			this->stackString.push(word);
-			this->stackChar.clear();
-		}
-		else if(word == "BEGIN"){
-			this->stackString.push(word);
-		}
-		else if(word == "FOR"){
-			this->stackString.push(word);
-			this->stackChar.clear();
-		}
-		else if((word == "FOR" && this->stackString.peek() == word) || (word == "BEGIN" && this->stackString.peek() == word)){
-			giveError(syntaxErrors, possibleError, word);
-		}
-		else if(word == "END" && (this->stackString.peek() == "BEGIN" || this->stackString.peek() == "FOR")){
-			this->stackString.pop();
-		}
-		else if (word[last] == ')' || word[0] == '('){
-			int pos = -1;
-			last = word.size() - 1;
-			for(char i : word){
-				++pos;
-				if(i == '('){
-					this->stackChar.push(i);
-				}
-				else if(i == ')'){
-					if(!this->stackChar.isEmpty()){
-						this->stackChar.pop();
-						if(pos == last){
-							this->stackString.pop();
-						}
-					}
-					else{
-						giveError(syntaxErrors, possibleError, ")");
-						this->stackString.pop();
-						break;
-					}
-					/*else if(this->stackChar.isEmpty()){
-						giveError(syntaxErrors, possibleError, "(");
-						break;
-					}*/
-				}
-			}
-		}
-	}
-	//if(!this->stackChar.isEmpty()){
-	//	giveError(syntaxErrors, possibleError, "(");
-	//}
-	if(!this->stackString.isEmpty()){
-		giveError(syntaxErrors, possibleError, "END");
-	}
-
-	//encounter for, push
-	//encounter left parenth. if the top of the stack is for, push it to the stack
-	//encounter right parenth. if the top of the stack is left parenth. pop off the left parenth.
-
-
-
-	for(this->it = this->wordFrequency.begin(); this->it != this->wordFrequency.end(); (this->it)++){
-		std::string word = this->it->first;
-		if(!alreadyContains(word, this->keyWords)){
-			for(char i : word){
-				if(isUpperCaseCharacter(i)){
-					possibleError += i;
-					hasUpperCase = true;
-				}
-				if(isLowerCaseCharacter(i)){
-					possibleError += i;
-				}
-			}
-
-			if(!alreadyContains(possibleError, syntaxErrors) && hasUpperCase){
-				syntaxErrors.push_back(possibleError);
-				std::cout << possibleError << " ";
-				possibleError = "";
-			}
-			possibleError = "";
-			hasUpperCase = false;
-		}
-	}
-	if(syntaxErrors.empty())
-		std::cout << "NA";
 	std::cout << std::endl;
 }
 
@@ -310,6 +426,9 @@ void Compiler::parse(){
 	std::ifstream file(fileLocation.c_str());
 
 	this->fillMap(file);
+
+	std::cout << "The depth of nested loop(s) is " << this->getLoopDepth() << "\n" << std::endl;
+
 	this->getKeyWords();
 	this->getIdentifiers();
 	this->getConstants();
@@ -317,7 +436,6 @@ void Compiler::parse(){
 	this->getDelimiters();
 	this->getSyntaxErrors();
 }
-
 
 int main(){
 
@@ -331,28 +449,3 @@ int main(){
 	return 0;
 }
 
-
-
-
-
-/* Parallel Vectors
-std::vector <std::string> wordList;
-std::vector <int> frequency;
-while(file >> input){
-	addWord(input,wordList,frequency);
-}
-for(int i = 0; i < wordList.size(); i++){
-	std::cout << "Word: " << wordList[i] << "   Frequency: " << frequency[i] << std::endl;
-}*/
-
-
-/*void addWord(std::string input, std::vector<std::string> & wordList, std::vector<int> & frequency){
-	for(unsigned int i = 0; i < wordList.size(); i++){
-		if(input == wordList[i]){
-			frequency[i]++;
-			return;
-		}
-	}
-	wordList.push_back(input);
-	frequency.push_back(1);
-}*/

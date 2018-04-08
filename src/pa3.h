@@ -24,8 +24,9 @@ private:
 	std::vector<std::string> words;
 	std::map<std::string, int> wordFrequency;
 	std::string rawData;
+	bool loopHasError();
 	bool parenthesesValid(std::string word);
-	int findLoopDepth();
+	int getLoopDepth();
 	void fillMap(std::ifstream& file);
 	void getSyntaxErrors();
 	void getDelimiters();
