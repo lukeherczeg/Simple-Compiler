@@ -1,7 +1,7 @@
 FOR (i, 10, ++)
-BEGAN
-	FOR (j, 25, ++)
-	BEGUN
-		sum=sum + i + 35 + j;
-	
+BEGIN
+	FOR (j, 10, ++)
+	BEGIN
+		sum=sum + i + j;
+	END
 END

@@ -9,6 +9,7 @@ public:
 	T peek();
 	void push(T item);
 	void pop();
+	void clear();
 	bool isEmpty();
 };
 
@@ -20,8 +21,8 @@ private:
 	std::vector<std::string> keyWords = {"FOR", "BEGIN", "END"};
 	std::vector<std::string> operators = {"++", "-", "*", "/", "=", "+"};
 	std::vector<std::string> delimiters = {";", ","};
-	std::map<std::string, int> wordFrequency;
 	std::vector<std::string> words;
+	std::map<std::string, int> wordFrequency;
 	std::string rawData;
 	bool parenthesesValid(std::string word);
 	int findLoopDepth();

@@ -28,6 +28,12 @@ template <class T> void Stack<T>::pop(){
 	stackList.pop_back();
 }
 
+template <class T> void Stack<T>::clear(){
+	while(!stackList.empty()){
+		stackList.pop_back();
+	}
+}
+
 template <class T> T Stack<T>::peek(){
 	if(!stackList.empty())
 		return stackList.back();
@@ -135,42 +141,64 @@ void Compiler::getSyntaxErrors(){
 	std::cout << "Syntax error(s): ";
 	std::vector<std::string> syntaxErrors;
 	std::string possibleError = "";
+	int last = 0;
 	bool hasUpperCase = false;
 
 	for(std::string word : this->words){
-		if(word == "FOR" || word == "BEGIN"){
+		if(word == "BEGIN" && !this->stackChar.isEmpty()){
+			giveError(syntaxErrors, possibleError, "(");
 			this->stackString.push(word);
+			this->stackChar.clear();
+		}
+		else if(word == "FOR" && !this->stackChar.isEmpty()){
+			giveError(syntaxErrors, possibleError, "(");
+			this->stackString.push(word);
+			this->stackChar.clear();
+		}
+		else if(word == "BEGIN"){
+			this->stackString.push(word);
+		}
+		else if(word == "FOR"){
+			this->stackString.push(word);
+			this->stackChar.clear();
 		}
 		else if((word == "FOR" && this->stackString.peek() == word) || (word == "BEGIN" && this->stackString.peek() == word)){
 			giveError(syntaxErrors, possibleError, word);
 		}
-		else if(word == "END" && this->stackString.peek() == "BEGIN"){
+		else if(word == "END" && (this->stackString.peek() == "BEGIN" || this->stackString.peek() == "FOR")){
 			this->stackString.pop();
 		}
-		else{
+		else if (word[last] == ')' || word[0] == '('){
+			int pos = -1;
+			last = word.size() - 1;
 			for(char i : word){
+				++pos;
 				if(i == '('){
 					this->stackChar.push(i);
 				}
 				else if(i == ')'){
 					if(!this->stackChar.isEmpty()){
 						this->stackChar.pop();
-						//if(this->stackString.peek() == "FOR")
-						//	this->stackString.pop();
+						if(pos == last){
+							this->stackString.pop();
+						}
 					}
-					else if(this->stackChar.isEmpty() && this->stackString.isEmpty()){
+					else{
 						giveError(syntaxErrors, possibleError, ")");
+						this->stackString.pop();
+						break;
 					}
-					else if(this->stackChar.isEmpty()){
+					/*else if(this->stackChar.isEmpty()){
 						giveError(syntaxErrors, possibleError, "(");
-					}
+						break;
+					}*/
 				}
 			}
 		}
 	}
-	if(!this->stackChar.isEmpty()){
-		giveError(syntaxErrors, possibleError, ")");
-	}
+	//if(!this->stackChar.isEmpty()){
+	//	giveError(syntaxErrors, possibleError, "(");
+	//}
 	if(!this->stackString.isEmpty()){
 		giveError(syntaxErrors, possibleError, "END");
 	}
@@ -250,7 +278,7 @@ void Compiler::getDelimiters(){
 			}
 		}
 	}
-	std::cout << std::endl;
+	std::cout << "\n" << std::endl;
 }
 
 void Compiler::fillMap(std::ifstream& file){
@@ -276,6 +304,8 @@ void Compiler::print(){
 
 void Compiler::parse(){
 	std::string fileLocation;
+	std::cout << "Please enter the name of the input file:" << std::endl;
+	//std::cin >> fileLocation;
 	fileLocation = "code.txt";
 	std::ifstream file(fileLocation.c_str());
 
@@ -292,6 +322,8 @@ void Compiler::parse(){
 int main(){
 
 	Compiler * compiler = new Compiler();
+
+
 
 	compiler->parse();
 	compiler->print();
