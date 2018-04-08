@@ -20,34 +20,75 @@ bool isLowerCaseCharacter(char character){
 	return (character <= 'z' && character >= 'a') ? true : false;
 }
 
-void Stack::push(std::string item){
+template <class T> void Stack<T>::push(T item){
 	stackList.push_back(item);
 }
 
-void Stack::pop(){
+template <class T> void Stack<T>::pop(){
 	stackList.pop_back();
 }
 
-std::string Stack::peek(){
-	return stackList.back();
+template <class T> T Stack<T>::peek(){
+	if(!stackList.empty())
+		return stackList.back();
+	return "";
 }
 
-bool Stack::isEmpty(){
+template <class T> bool Stack<T>::isEmpty(){
 	return stackList.empty();
 }
+
+char isMatching(char paren){
+	return (paren == '(') ? ')' : 'n';
+}
+
+void giveError(std::vector<std::string> & syntaxErrors, std::string possibleError, std::string c){
+	possibleError = c;
+	syntaxErrors.push_back(possibleError);
+	std::cout << possibleError << " ";
+}
+
+/*
+int main(){
+
+	std::string exp;
+	std::cin >> exp;
+    Stack * parenStack = new Stack();
+
+    for(unsigned int i = 0; i < exp.size(); i++){
+    	if(exp[i] == '(' || exp[i] == '[' || exp[i] == '{'){
+    		parenStack->push(exp[i]);
+    	}
+    	else{
+    		if(parenStack->isEmpty() || isMatching(parenStack->peek()) != exp[i]){
+    			std::cout << "Not valid expression" << std::endl;
+    			return 0;
+    		}
+    		parenStack->pop();
+    	}
+    }
+    if(!parenStack->isEmpty()){
+    	std::cout << "Not valid expression" << std::endl;
+    }
+    else{
+    	std::cout << "Valid expression" << std::endl;
+    }
+
+	return 0;
+}
+*/
 
 int Compiler::findLoopDepth(){
 	int count = 0;
 	std::string word = this->it->first;
 	for(this->it = this->wordFrequency.begin(); this->it != this->wordFrequency.end(); (this->it)++){
 		std::string word = this->it->first;
-		for(char i : word){
-			break;
-		}
+		//for(char i : word){
+		//	break;
+		//}
 	}
 	return count;
 }
-
 
 void Compiler::getConstants(){
 	std::cout << "Constants:";
@@ -90,10 +131,82 @@ void Compiler::getIdentifiers(){
 	std::cout << std::endl;
 }
 
-/*void Compiler::getSyntaxErrors(){
+void Compiler::getSyntaxErrors(){
 	std::cout << "Syntax error(s): ";
+	std::vector<std::string> syntaxErrors;
+	std::string possibleError = "";
+	bool hasUpperCase = false;
+
+	for(std::string word : this->words){
+		if(word == "FOR" || word == "BEGIN"){
+			this->stackString.push(word);
+		}
+		else if((word == "FOR" && this->stackString.peek() == word) || (word == "BEGIN" && this->stackString.peek() == word)){
+			giveError(syntaxErrors, possibleError, word);
+		}
+		else if(word == "END" && this->stackString.peek() == "BEGIN"){
+			this->stackString.pop();
+		}
+		else{
+			for(char i : word){
+				if(i == '('){
+					this->stackChar.push(i);
+				}
+				else if(i == ')'){
+					if(!this->stackChar.isEmpty()){
+						this->stackChar.pop();
+						//if(this->stackString.peek() == "FOR")
+						//	this->stackString.pop();
+					}
+					else if(this->stackChar.isEmpty() && this->stackString.isEmpty()){
+						giveError(syntaxErrors, possibleError, ")");
+					}
+					else if(this->stackChar.isEmpty()){
+						giveError(syntaxErrors, possibleError, "(");
+					}
+				}
+			}
+		}
+	}
+	if(!this->stackChar.isEmpty()){
+		giveError(syntaxErrors, possibleError, ")");
+	}
+	if(!this->stackString.isEmpty()){
+		giveError(syntaxErrors, possibleError, "END");
+	}
+
+	//encounter for, push
+	//encounter left parenth. if the top of the stack is for, push it to the stack
+	//encounter right parenth. if the top of the stack is left parenth. pop off the left parenth.
+
+
+
+	for(this->it = this->wordFrequency.begin(); this->it != this->wordFrequency.end(); (this->it)++){
+		std::string word = this->it->first;
+		if(!alreadyContains(word, this->keyWords)){
+			for(char i : word){
+				if(isUpperCaseCharacter(i)){
+					possibleError += i;
+					hasUpperCase = true;
+				}
+				if(isLowerCaseCharacter(i)){
+					possibleError += i;
+				}
+			}
+
+			if(!alreadyContains(possibleError, syntaxErrors) && hasUpperCase){
+				syntaxErrors.push_back(possibleError);
+				std::cout << possibleError << " ";
+				possibleError = "";
+			}
+			possibleError = "";
+			hasUpperCase = false;
+		}
+	}
+	if(syntaxErrors.empty())
+		std::cout << "NA";
+	std::cout << std::endl;
 }
-*/
 
 void Compiler::getKeyWords(){
 	std::cout << "Keywords: ";
@@ -144,6 +257,8 @@ void Compiler::fillMap(std::ifstream& file){
 	std::string word;
 	while(file >> word){
 		this->wordFrequency[word]++;
+		this->rawData += word;
+		this->words.push_back(word);
 	}
 	file.close();
 }
@@ -152,6 +267,10 @@ void Compiler::print(){
 	std::cout << std::endl;
 	for(this->it = this->wordFrequency.begin(); this->it != this->wordFrequency.end(); (this->it)++){
 		std::cout << this->it->first << std::endl;
+	}
+	std::cout << "\n";
+	for(std::string word : this->words){
+		std::cout << word << " ";
 	}
 }
 
@@ -166,11 +285,8 @@ void Compiler::parse(){
 	this->getConstants();
 	this->getOperators();
 	this->getDelimiters();
+	this->getSyntaxErrors();
 }
-
-//encounter for, push
-//encounter left parenth. if the top of the stack is for, push it to the stack
-//encounter right parenth. if the top of the stack is left parenth. pop off the left parenth.
 
 
 int main(){

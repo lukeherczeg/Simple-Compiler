@@ -1,7 +1,7 @@
 FOR (i, 10, ++)
-BEGIN
-FOR (j, 10, ++)
 BEGAN
-sum=sum + i + j;
-END
+	FOR (j, 25, ++)
+	BEGUN
+		sum=sum + i + 35 + j;
+	
 END

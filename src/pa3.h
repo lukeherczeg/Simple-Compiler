@@ -1,25 +1,29 @@
 #ifndef PA3_H_
 #define PA3_H_
 
+template<class T>
 class Stack{
 private:
-	std::vector<std::string> stackList;
+	std::vector<T> stackList;
 public:
-	std::string peek();
-	void push(std::string item);
+	T peek();
+	void push(T item);
 	void pop();
 	bool isEmpty();
 };
 
-
 class Compiler{
 private:
-	Stack stack;
+	Stack<char> stackChar;
+	Stack<std::string> stackString;
 	std::map<std::string, int>::iterator it;
 	std::vector<std::string> keyWords = {"FOR", "BEGIN", "END"};
-	std::vector<std::string> operators = {"++", "-", "*", "/", "=", "+"}; const int numOperators = 6;
-	std::vector<std::string> delimiters = {";", ","}; const int numDelimiters = 2;
+	std::vector<std::string> operators = {"++", "-", "*", "/", "=", "+"};
+	std::vector<std::string> delimiters = {";", ","};
 	std::map<std::string, int> wordFrequency;
+	std::vector<std::string> words;
+	std::string rawData;
+	bool parenthesesValid(std::string word);
 	int findLoopDepth();
 	void fillMap(std::ifstream& file);
 	void getSyntaxErrors();
