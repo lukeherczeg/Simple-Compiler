@@ -26,6 +26,10 @@ template <class T> bool alreadyContains(const T &value, const std::vector<T> &ar
     return std::find(array.begin(), array.end(), value) != array.end();
 }
 
+template <class T> bool Stack<T>::isEmpty(){
+	return stackList.empty();
+}
+
 template <class T> void Stack<T>::push(T item){
 	stackList.push_back(item);
 }
@@ -45,10 +49,6 @@ template <class T> T Stack<T>::peek(){
 	if(!stackList.empty())
 		return stackList.back();
 	return "";
-}
-
-template <class T> bool Stack<T>::isEmpty(){
-	return stackList.empty();
 }
 
 void Compiler::getSyntaxErrors(){
@@ -164,6 +164,7 @@ int Compiler::getLoopDepth(){
 	int beginCount = 0;
 	int forCount = 0;
 	bool extraRightParentheses = false;
+	bool sameLoop = false;
 	bool hasParentheses = false;
 	bool isFirstLoop = true;
 	std::vector<Stack<std::string>> loops;
@@ -194,6 +195,7 @@ int Compiler::getLoopDepth(){
 				loopsReached++;
 			}
 			else if(loops[count-1].peek() == "END"){
+				sameLoop = true;
 				count--;
 				forCount--;
 				beginCount--;
@@ -233,6 +235,8 @@ int Compiler::getLoopDepth(){
 			else if(loops[count+1].peek() == "END"){
 				loops[count].push(word);
 			}
+			else if(sameLoop)
+				beginCount++;
 		}
 	}
 
