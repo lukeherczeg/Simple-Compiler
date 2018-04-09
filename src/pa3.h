@@ -35,6 +35,7 @@ private:
 	void getOperators();
 	void getKeyWords();
 public:
+	~Compiler();
 	void parseData();
 };
 

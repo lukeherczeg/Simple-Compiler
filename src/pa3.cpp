@@ -352,11 +352,14 @@ void Compiler::parseData(){ // Asks for a file name, and uses it to find and rea
 	this->getSyntaxErrors();
 }
 
+Compiler::~Compiler(){}
+
 int main(){
 	Compiler * compiler = new Compiler(); // Instantiates a compiler and parses it.
 
 	compiler->parseData();
 
+	delete compiler;
 	return 0;
 }
 
