@@ -35,9 +35,10 @@ template <class T> void Stack<T>::pop(){
 }
 
 template <class T> void Stack<T>::clear(){
-	while(!stackList.empty()){
-		stackList.pop_back();
-	}
+	if(!stackList.empty())
+		while(!stackList.empty()){
+			stackList.pop_back();
+		}
 }
 
 template <class T> T Stack<T>::peek(){
@@ -51,13 +52,14 @@ template <class T> bool Stack<T>::isEmpty(){
 }
 
 void Compiler::getSyntaxErrors(){
-	std::cout << "Syntax error(s): ";
+	std::cout << "Syntax Error(s): ";
 	std::vector<std::string> syntaxErrors;
 	std::string possibleError = "";
 	int last = 0;
 	int forCount = 0;
 	int beginCount = 0;
 	int endCount = 0;
+	bool hasParentheses = false;
 	bool endMissing = true;
 	bool beginMissing = true;
 	bool hasUpperCase = false;
@@ -90,6 +92,7 @@ void Compiler::getSyntaxErrors(){
 			hasUpperCase = false; // Reset the value of hasUpperCase.
 		}
 		if(word == "FOR" && !this->stackChar.isEmpty()){
+			hasParentheses = false;
 			while(!this->stackChar.isEmpty()){
 				giveError(syntaxErrors, possibleError, "(");
 				this->stackChar.pop();
@@ -98,8 +101,13 @@ void Compiler::getSyntaxErrors(){
 			forCount++;
 		}
 		else if(word == "FOR"){
+			if(!hasParentheses && forCount > 0){
+				giveError(syntaxErrors, possibleError, "(");
+				giveError(syntaxErrors, possibleError, ")");
+			}
 			this->stackString.push(word);
 			this->stackChar.clear();
+			hasParentheses = false;
 			forCount++;
 		}
 		else if(word == "END"){
@@ -109,6 +117,7 @@ void Compiler::getSyntaxErrors(){
 			beginCount++;
 		}
 		else if (word[word.size()-1] == ')' || word[0] == '('){
+			hasParentheses = true;
 			int pos = -1;
 			for(char i : word){
 				++pos;
@@ -154,6 +163,8 @@ int Compiler::getLoopDepth(){
 	int loopsReached = 1;
 	int beginCount = 0;
 	int forCount = 0;
+	bool extraRightParentheses = false;
+	bool hasParentheses = false;
 	bool isFirstLoop = true;
 	std::vector<Stack<std::string>> loops;
 	for(std::string word : this->words){
@@ -166,6 +177,9 @@ int Compiler::getLoopDepth(){
 		else if(word == "FOR"){
 			forCount++;
 			count++;
+			hasParentheses = false;
+			extraRightParentheses = false;
+			this->stackChar.clear();
 			if(loops[count-1].peek() == "FOR" && count == 1){
 				forCount = 0; beginCount = 0; loopsReached = 0;
 				break;
@@ -186,25 +200,27 @@ int Compiler::getLoopDepth(){
 				loops[count].clear();
 				loops[count].push(word);
 			}
-			else if (word[word.size() - 1] == ')' || word[0] == '('){
-				int pos = -1;
-				for(char i : word){
-					++pos;
-					switch(i){
-					case '(':
-						this->stackChar.push(i);
-						break;
-					case ')':
-						if(!this->stackChar.isEmpty())
-							this->stackChar.pop();
-						break;
-					}
+		}
+		if (word[word.size()-1] == ')' || word[0] == '('){
+			hasParentheses = true;
+			for(char i : word){
+				switch(i){
+				case '(':
+					this->stackChar.push(i);
+					break;
+				case ')':
+					if(!this->stackChar.isEmpty())
+						this->stackChar.pop();
+					else
+						extraRightParentheses = true;
+					break;
 				}
 			}
 		}
-		if(word == "BEGIN" && loops[count].peek() == "FOR"){
-			beginCount++;
+		if((word == "BEGIN" && loops[count].peek() == "FOR") && this->stackChar.isEmpty()
+				&& !extraRightParentheses && hasParentheses){
 			loops[count].push(word);
+			beginCount++;
 		}
 		if(word == "END"){
 			forCount--;
@@ -214,7 +230,7 @@ int Compiler::getLoopDepth(){
 				count++;
 				loops[count].push(word);
 			}
-			else if(loops[count+1].peek()  == "END"){
+			else if(loops[count+1].peek() == "END"){
 				loops[count].push(word);
 			}
 		}
@@ -222,8 +238,10 @@ int Compiler::getLoopDepth(){
 
 	if(forCount > 0)
 		loopsReached -= forCount;
-	if(beginCount != forCount)
+	else if(beginCount != forCount)
 		loopsReached -= (forCount - beginCount);
+
+	this->stackChar.clear();
 
 	return loopsReached;
 }
@@ -320,18 +338,9 @@ void Compiler::fillMap(std::ifstream& file){
 	std::string word;
 	while(file >> word){
 		this->wordFrequency[word]++;
-		this->rawData += word;
 		this->words.push_back(word);
 	}
 	file.close();
-}
-
-void Compiler::print(){
-	std::cout << std::endl;
-	std::cout << "\n";
-	for(std::string word : this->words){
-		std::cout << word << " ";
-	}
 }
 
 void Compiler::parse(){
@@ -354,11 +363,9 @@ void Compiler::parse(){
 }
 
 int main(){
-
 	Compiler * compiler = new Compiler();
 
 	compiler->parse();
-	compiler->print();
 
 	return 0;
 }

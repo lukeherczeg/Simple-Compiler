@@ -36,7 +36,6 @@ private:
 	void getKeyWords();
 public:
 	void parse();
-	void print();
 };
 
 
