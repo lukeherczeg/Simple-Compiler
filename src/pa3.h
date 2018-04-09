@@ -23,11 +23,11 @@ private:
 	std::vector<std::string> delimiters = {";", ","};
 	std::vector<std::string> words;
 	std::map<std::string, int> wordFrequency;
-	std::string rawData;
+
+	int getLoopDepth();
 	bool loopHasError();
 	bool parenthesesValid(std::string word);
-	int getLoopDepth();
-	void fillMap(std::ifstream& file);
+	void read(std::ifstream& file);
 	void getSyntaxErrors();
 	void getDelimiters();
 	void getConstants();
@@ -35,7 +35,7 @@ private:
 	void getOperators();
 	void getKeyWords();
 public:
-	void parse();
+	void parseData();
 };
 
 
