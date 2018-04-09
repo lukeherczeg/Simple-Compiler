@@ -1,9 +1,7 @@
-FOR 
+FOR (i, 10, ++)
 BEGIN
-	FOR 
-	BEGIN 
-	END
-	FOR 
+	FOR (k, 5, ++)
 	BEGIN
-	END 
+		mul=mul * k;
+	END
 END
