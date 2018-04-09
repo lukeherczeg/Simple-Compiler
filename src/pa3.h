@@ -38,9 +38,4 @@ public:
 	void parseData();
 };
 
-
-
-
-
-
 #endif /* PA3_H_ */

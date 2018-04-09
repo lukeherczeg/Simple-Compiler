@@ -7,6 +7,7 @@
 #include <map>
 #include "pa3.h"
 
+
 bool isUpperCaseCharacter(char character){ // Checks if a character is within range of upper case characters.
 	return (character <= 'Z' && character >= 'A') ? true : false;
 }
