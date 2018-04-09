@@ -342,7 +342,7 @@ void Compiler::parseData(){ // Asks for a file name, and uses it to find and rea
 
 	this->read(file);					// Using private methods, performs all operations required on the data.
 
-	std::cout << "The depth of nested loop(s) is " << this->getLoopDepth() << "\n" << std::endl;
+	std::cout << "\nThe depth of nested loop(s) is " << this->getLoopDepth() << ".\n" << std::endl;
 
 	this->getKeyWords();
 	this->getIdentifiers();
